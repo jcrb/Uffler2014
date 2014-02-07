@@ -1,0 +1,27 @@
+Tidy data
+========================================================
+
+- colonne NOTE: remplacer *absent* par NA
+- colonne NOTE: remplacer la virgule par le point décimal
+
+```{r init}
+source("private.R")
+d <- load()
+names(d)
+str(d)
+
+d$NOTE <- as.numeric(d$NOTE)
+```
+
+Etude de la note
+----------------
+```{r note}
+mean(d$NOTE, na.rm=TRUE)
+sd(d$NOTE, na.rm=TRUE)
+summary(d$NOTE)
+tapply(d$NOTE, d$RANG, length)
+tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
+boxplot(d$NOTE ~ d$RANG, ylab="Note", ylab="Rang de l'étudiant", main="Répartition des notes en fonction du rang", col="yellow")
+```
+
+
