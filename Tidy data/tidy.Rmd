@@ -5,7 +5,7 @@ Tidy data
 - colonne NOTE: remplacer la virgule par le point décimal
 
 ```{r init}
-source("private.R")
+source("../private.R")
 d <- load()
 names(d)
 str(d)
@@ -21,7 +21,14 @@ sd(d$NOTE, na.rm=TRUE)
 summary(d$NOTE)
 tapply(d$NOTE, d$RANG, length)
 tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
-boxplot(d$NOTE ~ d$RANG, ylab="Note", ylab="Rang de l'étudiant", main="Répartition des notes en fonction du rang", col="yellow")
+boxplot(d$NOTE ~ d$RANG, ylab="Note", xlab="Rang de l'étudiant", main="Répartition des notes en fonction du rang", col="yellow")
 ```
+en fonction du sexe
+-------------------
+```{r sexe}
+tapply(d$NOTE, d$SEXE, mean, na.rm=TRUE)
+boxplot(d$NOTE ~ d$SEXE, ylab="Note", main="Répartition des notes en fonction du sexe", col="pink")
+```
+
 
 
