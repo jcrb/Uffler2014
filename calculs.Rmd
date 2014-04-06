@@ -1,0 +1,103 @@
+calculs
+========================================================
+
+2014-04-03
+
+serait il possible d'analyser d'ores et déjà la corrélation entre motivation et RANG concernant cet échantillon là ?
+---------------------------------------------------------------------------------------------------------------------
+
+#### Lecture du fichier des données dans Drive
+
+require(RCurl)
+file <- "https://docs.google.com/spreadsheet/pub?key=0Aieb-IfcCNcXdExWbTlPSXNHRlFfRVpPcl80X2ZlNVE&output=csv"
+f <- read.table(textConnection(getURL(file)), header=T, sep=",")
+save(f, file="data_motivation.Rda")
+
+```{r start}
+load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
+```
+
+- **qs** est une matrice formée des 26 questions.  
+- on forme une colonne **motivation** qui est la somme des 26 questions posées:
+
+```{r motivation}
+qs <- subset(f, select=c(QUEST.1:QUEST.26))
+f$motivation <- rowSums(qs)
+attach(f)
+```
+
+On a 2 variables:
+  - **motivation** est une variable quantitative
+  - **RANG** est une variable qualitative
+
+
+```{r motivation_rang}
+rang <- as.factor(RANG)
+n <- nrow(f)
+
+# nombre d'étudiants par rang:
+summary(rang)
+
+# scatterplot
+stripchart(motivation~rang, method="stack", col="blue", ylab="Rang")
+
+# histogramme du score de motivation
+hist(motivation, xlab="Score de motivation", ylab="Fréquence", main=paste0("Histogramme du score de motivation (n = ",n,")"))
+
+# score de motivation en fonction du rang  
+boxplot(motivation ~ rang, xlab="Rang occupé dans la salle", ylab="Score de motivation", col="antiquewhite")
+means <- tapply(motivation, rang,mean, na.rm=TRUE)
+points(1:9, means, pch = 23, cex = 0.75, bg = "red")
+text(1:9 , means + 10, labels = formatC(means, format = "f", digits = 1),pos = 1, cex = 0.9, col = "blue")
+legend(7, 90, legend=c("score moyen"), col=c("red"), pch=23)
+
+# Analyse de la variance
+r <- aov(motivation ~ rang, data=f)
+s <- summary(r)
+s
+
+p <- simplify2array(s[[1]]["Pr(>F)"]) # siginificativité de l'Anova
+
+library(gplots)
+plotmeans(motivation ~ rang)
+
+TukeyHSD(r)
+par(las=2)
+plot(TukeyHSD(r))
+```
+#### Conclusion
+- il existe un effet **rang** significatif (p = `r round(p[1],4)`)
+- le premier rang est très motivé. La motivation s'effondre au deuxime rang (score le plus mauvais) puis s'améliore progressivement juqu'à culminer à l'avant-dernier reng où le score et supérieur à celui du premier rang.
+- le dernier rang a un effctif trop faible pour être pris en compte.
+
+
+Résultats selon la filière
+==========================
+
+Il faut corriger ECOLE car un niveau est mal orthographié:
+```{r etiade}
+summary(ECOLE)
+ECOLE[as.character(ECOLE)=="ET IADE "]<-"ET IADE"
+ECOLE <- factor(ECOLE)
+summary(ECOLE)
+barplot(table(ECOLE))
+```
+
+Motivation selon la filière
+----------------------------
+
+```{r ecole_motivation}
+means <- tapply(motivation, ECOLE, mean, na.rm=TRUE)
+means
+boxplot(motivation~ECOLE, ylab="Motivation", xlab="Filière", main="Motivation selon la filière", col="antiquewhite")
+points(1:4, means, pch = 23, cex = 0.75, bg = "red")
+```
+
+Notes
+-----
+
+```{r ecole_notes}
+tapply(NOTE, ECOLE, mean, na.rm=TRUE)
+```
+
+

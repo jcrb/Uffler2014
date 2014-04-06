@@ -8,6 +8,7 @@ Tidy data
 source("../private.R")
 d <- load()
 names(d)
+summary(d)
 str(d)
 
 d$NOTE <- as.numeric(d$NOTE)
@@ -21,6 +22,7 @@ sd(d$NOTE, na.rm=TRUE)
 summary(d$NOTE)
 tapply(d$NOTE, d$RANG, length)
 tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
+hist(d$NOTE, ylab="Fréquence", xlab="Notes", main="Histogramme des notes", col="gray90")
 boxplot(d$NOTE ~ d$RANG, ylab="Note", xlab="Rang de l'étudiant", main="Répartition des notes en fonction du rang", col="yellow")
 ```
 en fonction du sexe
@@ -29,6 +31,4 @@ en fonction du sexe
 tapply(d$NOTE, d$SEXE, mean, na.rm=TRUE)
 boxplot(d$NOTE ~ d$SEXE, ylab="Note", main="Répartition des notes en fonction du sexe", col="pink")
 ```
-
-
 
