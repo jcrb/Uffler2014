@@ -1,0 +1,32 @@
+Fusion des données des 2 études
+========================================================
+
+Données 2012-20132
+------------------
+```{r start_g}
+g <- read.table("data5.csv", header=TRUE, sep=";")
+```
+
+
+
+Données 2014
+------------
+Les données sont récupérées dans la dataframe __f__. Il faut créer un certain nombre de colonnes supplémentaires
+
+```{r start}
+load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
+mot.intinsq <- subset(f, select = c(QUEST.1,QUEST.13,QUEST.18,QUEST.20))
+f$MI <- rowSums(mot.intinsq)
+valeur.tache <- subset(f, select = c(QUEST.3,QUEST.8,QUEST.14,QUEST.19,QUEST.22,QUEST.23))
+percep.compet <- subset(f, select = c(QUEST.4,QUEST.5,QUEST.10,QUEST.12,QUEST.16,QUEST.17,QUEST.24,QUEST.26))
+contolabilite <- subset(f, select = c(QUEST.2,QUEST.7,QUEST.15,QUEST.21))
+mot.extrinsq <- subset(f, select = c(QUEST.6,QUEST.9,QUEST.11,QUEST.25))
+qs <- subset(f, select=c(QUEST.1:QUEST.26))
+
+f$LIKERT <- rowSums(qs)
+f$MI <- rowSums(mot.intinsq)
+f$VT <- rowSums(valeur.tache)
+f$PC <- rowSums(percep.compet)
+f$CO <- rowSums(contolabilite)
+f$ME <- rowSums(mot.extrinsq)
+```

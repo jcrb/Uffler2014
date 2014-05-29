@@ -4,31 +4,124 @@ Tidy data
 - colonne NOTE: remplacer *absent* par NA
 - colonne NOTE: remplacer la virgule par le point décimal
 
+```{r start}
+load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
+```
+
 ```{r init}
 source("../private.R")
-d <- load()
+
+d <- f
 names(d)
 summary(d)
 str(d)
 
 d$NOTE <- as.numeric(d$NOTE)
 ```
+Etude du rang
+-------------
+```{r rang}
+rang_nb <- tapply(d$NOTE, d$RANG, length) #nb étudiants par rang
+barplot(rang_nb, ylab="nombre d'étudiants", xlab="Rang dans la classe", main = "Répartitions des étudiants en fonction du rang")
+
+```
+
 
 Etude de la note
 ----------------
 ```{r note}
 mean(d$NOTE, na.rm=TRUE)
 sd(d$NOTE, na.rm=TRUE)
-summary(d$NOTE)
+n.etudiants <- sum(!is.na(d$NOTE))
+summary(d$NOTE) # nb de notes
 tapply(d$NOTE, d$RANG, length)
 tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
 hist(d$NOTE, ylab="Fréquence", xlab="Notes", main="Histogramme des notes", col="gray90")
 boxplot(d$NOTE ~ d$RANG, ylab="Note", xlab="Rang de l'étudiant", main="Répartition des notes en fonction du rang", col="yellow")
 ```
+Note moyenne par rang
+---------------------
+```{r notemoy_rang}
+mean_rang <- tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
+mean_rang
+barplot(mean_rang, main="Répartition des notes en fonction du rang", ylab="Note", xlab="Rang")
+boxplot(NOTE ~ RANG, data=d, main="Répartition des notes en fonction du rang", ylab="Note", xlab="Rang")
+points( 1:9, mean_rang, col="red", pch=15)
+legend("bottomleft", legend=c("moyenne","médiane"), col=c("red","black"), pch=15, lty=1, bty="n")
+
+f <- aov(d$NOTE ~ d$RANG)
+f
+summary(f)
+```
+
 en fonction du sexe
 -------------------
 ```{r sexe}
+summary(d$SEXE)
 tapply(d$NOTE, d$SEXE, mean, na.rm=TRUE)
 boxplot(d$NOTE ~ d$SEXE, ylab="Note", main="Répartition des notes en fonction du sexe", col="pink")
+
+note <- split(d$NOTE, d$SEXE)
+t.test(note$F, note$M)
+
+f <- aov(d$NOTE ~ d$RANG)
+f
+summary(f)
 ```
 
+Corelation Note-Motivation
+--------------------------
+
+Récupération de la feuille de calcul sur _drive_ et sauvegarde dans le fichier __data_motivation.Rda__. Les données sont présentes en mémoire centrale sous le nom de __f__. On crée une colonne __motivation__ somme des questions 1 à 26. On dispose de 3 données:
+- le score de motivation (quantitatif)
+- la note (quantitatif)
+- le rang occuppé (qualitatif)
+```{r}
+require(RCurl)
+file <- "https://docs.google.com/spreadsheet/pub?key=0Aieb-IfcCNcXdExWbTlPSXNHRlFfRVpPcl80X2ZlNVE&output=csv"
+f <- read.table(textConnection(getURL(file)), header=T, sep=",")
+save(f, file="data_motivation.Rda")
+write.table(f, file="data_motivation.csv", sep=",")
+load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
+qs <- subset(f, select=c(QUEST.1:QUEST.26))
+f$motivation <- rowSums(qs)
+```
+
+On peut calculer un coef.de corrélation entre 2 variables quantitatives non nulles. On forme un dataframe avec les variables _motivation_ et _note_. Puis on élimine les lignes contenant des NA avant de calculer un coef de corrélation:
+```{r cor_motivation_note}
+c <- f[,c("NOTE", "motivation")]
+g <- c[complete.cases(c),]
+cor(g$NOTE, g$motivation)
+plot(g$NOTE, g$motivation, main="Note versus Motivation", xlab="NOTE", ylab="MOTIVATION", col="blue", pch=10)
+
+```
+CCL: pas de corrélation entre NOTE et MOTIVATION.
+
+Essai de modélisation
+---------------------
+
+```{r model}
+mod <- aov(f$NOTE ~ f$RANG)
+mod
+summary(mod)
+mod <- aov(f$NOTE ~ f$RANG + f$motivation)
+mod
+summary(mod)
+mod <- aov(f$NOTE ~ f$RANG * f$motivation)
+summary(mod)
+mod <- aov(motivation ~ RANG, data=f)
+summary(mod)
+y <- cut(f$motivation, quantile(f$motivation, na.rm=T))
+mod <- aov(f$NOTE ~ f$RANG * y)
+summary(mod)
+mod <- aov(f$NOTE ~ y)
+summary(mod)
+mod <- aov(motivation ~ RANG, data=f)
+summary(mod)
+mod <- aov(NOTE ~ RANG, data=f)
+summary(mod)
+mod <- aov(NOTE ~ motivation, data=f)
+summary(mod)
+
+```
+Il y a une relation significative entre la motivation et le rang.

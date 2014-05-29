@@ -17,3 +17,6 @@ Etude de la motivation des étudiants en fonction de leur place dans un amphith�
 
 - on forme une colonne **motivation** qui est lz somme des 26 questions posées
 
+2014-04-26
+----------
+- récup du fichier __data5.csv__ correspondant au trvail de 2012-2013. L'objectif est de fusionner les deux ensembles de données.

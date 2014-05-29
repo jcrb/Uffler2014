@@ -7,11 +7,13 @@ serait il possible d'analyser d'ores et déjà la corrélation entre motivation 
 ---------------------------------------------------------------------------------------------------------------------
 
 #### Lecture du fichier des données dans Drive
-
+```
 require(RCurl)
 file <- "https://docs.google.com/spreadsheet/pub?key=0Aieb-IfcCNcXdExWbTlPSXNHRlFfRVpPcl80X2ZlNVE&output=csv"
 f <- read.table(textConnection(getURL(file)), header=T, sep=",")
 save(f, file="data_motivation.Rda")
+write.table(f, file="data_motivation.csv", sep=",")
+```
 
 ```{r start}
 load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
@@ -20,29 +22,42 @@ load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
 - **qs** est une matrice formée des 26 questions.  
 - on forme une colonne **motivation** qui est la somme des 26 questions posées:
 
-```{r motivation}
+```{r motivation, echo=FALSE}
 qs <- subset(f, select=c(QUEST.1:QUEST.26))
 f$motivation <- rowSums(qs)
 attach(f)
+n <- nrow(f)
+summary(motivation)
+# hist(motivation, ylab="effectifs", xlab="Score de motivation")
 ```
+La moyenne et la médiane so nt proches ce qui permet de considérer (avec l'aspet de l'histogramme) que les données sont sensiblement normales.
 
-On a 2 variables:
+Il y a __`r n` observations__.
+
+On a 3 variables:
   - **motivation** est une variable quantitative
   - **RANG** est une variable qualitative
+  - **NOTE** est une variable quantitative
 
+Etude du rang
+--------------
 
-```{r motivation_rang}
+```{r motivation_rang, comment="", echo=FALSE, message=FALSE}
 rang <- as.factor(RANG)
-n <- nrow(f)
 
 # nombre d'étudiants par rang:
-summary(rang)
+s.rang <- table(rang)
+#rownames(s.rang) <- "effectif"
+s.rang
 
+print(" les rangs 6, 8 et 9 ont moins de 10 étudiants (regrouper ?")
 # scatterplot
-stripchart(motivation~rang, method="stack", col="blue", ylab="Rang")
+stripchart(motivation~rang, method="stack", col="blue", ylab="Rang", main="Rang et Motivation")
+print("Les points sont très dispersés indiquant une corrélation faible ou nulle entre le rang et la motivation.")
 
 # histogramme du score de motivation
-hist(motivation, xlab="Score de motivation", ylab="Fréquence", main=paste0("Histogramme du score de motivation (n = ",n,")"))
+hist(motivation, xlab="Score de motivation", ylab="Fréquence", main=paste0("Histogramme du score de motivation (n = ",n,")"), col="cornflowerblue", border="white")
+
 
 # score de motivation en fonction du rang  
 boxplot(motivation ~ rang, xlab="Rang occupé dans la salle", ylab="Score de motivation", col="antiquewhite")
@@ -55,15 +70,25 @@ legend(7, 90, legend=c("score moyen"), col=c("red"), pch=23)
 r <- aov(motivation ~ rang, data=f)
 s <- summary(r)
 s
-
 p <- simplify2array(s[[1]]["Pr(>F)"]) # siginificativité de l'Anova
+
+print("L'analyse de la variance motivation en fonction du rang indique qu'au moins pour un rang, la motivation est différente de celle des autres rangs")
 
 library(gplots)
 plotmeans(motivation ~ rang)
 
-TukeyHSD(r)
+tk <- TukeyHSD(r)
+tk
+n <- row.names(tk$rang)
+for(i in 1:nrow(tk$rang)){
+  if(tk$rang[i,4] < 0.05)
+    print(paste("rang", n[i], "p = ", round(tk$rang[i,4],3)))
+  }
 par(las=2)
-plot(TukeyHSD(r))
+
+print("Le test de Tukey montre qu'il existe une différence significative de motivation entre les rangs 1-2 et 2-8.")
+
+plot(tk)
 ```
 #### Conclusion
 - il existe un effet **rang** significatif (p = `r round(p[1],4)`)
@@ -80,24 +105,69 @@ summary(ECOLE)
 ECOLE[as.character(ECOLE)=="ET IADE "]<-"ET IADE"
 ECOLE <- factor(ECOLE)
 summary(ECOLE)
-barplot(table(ECOLE))
+barplot(table(ECOLE), ylab="Effectif", main="Répartition des étudiants selon la filière")
 ```
 
 Motivation selon la filière
 ----------------------------
 
-```{r ecole_motivation}
+```{r ecole_motivation, comment=""}
 means <- tapply(motivation, ECOLE, mean, na.rm=TRUE)
 means
 boxplot(motivation~ECOLE, ylab="Motivation", xlab="Filière", main="Motivation selon la filière", col="antiquewhite")
 points(1:4, means, pch = 23, cex = 0.75, bg = "red")
+
+mod <- aov(motivation ~ ECOLE)
+summary(mod)
+TukeyHSD(mod)
 ```
 
 Notes
 -----
 
-```{r ecole_notes}
+```{r ecole_notes, comment=""}
+means.note <- tapply(NOTE, ECOLE, mean, na.rm=TRUE)
 tapply(NOTE, ECOLE, mean, na.rm=TRUE)
+boxplot(NOTE ~ ECOLE, ylab="Notes", xlab="Filière", main="Notes selon la filière", col="antiquewhite")
+points(1:4, means.note, pch = 23, cex = 0.75, bg = "red")
+
+mod <- aov(NOTE~ECOLE)
+summary(mod)
+TukeyHSD(mod)
+
+plotmeans(NOTE ~ ECOLE)
+
+```
+Il existe une différence significative entre tous les groupes. Les IADE en moyenne de meilleures notes que les Auxiliaires de puéricultures qui sont meilleures que les sage-femmes.
+
+
+Rang et note
+---------------------
+```{r notemoy_rang, echo=FALSE, comment=""}
+mean_rang <- tapply(f$NOTE, f$RANG, mean, na.rm=TRUE)
+mean_rang
+barplot(mean_rang, main="Répartition des notes en fonction du rang", ylab="Note", xlab="Rang")
+boxplot(NOTE ~ RANG, data=f, main="Répartition des notes en fonction du rang", ylab="Note", xlab="Rang")
+points( 1:9, mean_rang, col="red", pch=15)
+legend("bottomleft", legend=c("moyenne","médiane"), col=c("red","black"), pch=15, lty=1, bty="n")
+
+mod <- aov(f$NOTE ~ f$RANG)
+mod
+summary(mod)
+```
+__Conclusions__: Pas de corréltion entre le rang et la note.
+
+Motivation et note
+------------------
+
+On peut calculer un coef.de corrélation entre 2 variables quantitatives non nulles. On forme un dataframe avec les variables _motivation_ et _note_. Puis on élimine les lignes contenant des NA avant de calculer un coef de corrélation:
+```{r cor_motivation_note, echo=FALSE, comment=""}
+c <- f[,c("NOTE", "motivation")]
+g <- c[complete.cases(c),]
+coef.cor <- cor(g$NOTE, g$motivation)
+plot(g$NOTE, g$motivation, main="Note versus Motivation", xlab="NOTE", ylab="MOTIVATION", col="blue", pch=10)
+
 ```
 
+__CCL__: pas de corrélation entre NOTE et MOTIVATION (coef. de corrélation `r coef.cor`).
 

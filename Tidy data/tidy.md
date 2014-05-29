@@ -6,16 +6,14 @@ Tidy data
 
 
 ```r
-source("../private.R")
-d <- load()
+load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
 ```
 
-```
-## Loading required package: RCurl
-## Loading required package: bitops
-```
 
 ```r
+source("../private.R")
+
+d <- f
 names(d)
 ```
 
@@ -102,12 +100,12 @@ summary(d)
 ##                                                                    
 ##  PRATIQUE PLACE.RES CONCENTR DECROCHE REDOUBLA            NOTE      
 ##   :93      :103      :109     :115    Mode:logical   Min.   : 4.42  
-##  O:25     O: 15     O:  9    O:  3    NA's:118       1st Qu.: 9.25  
-##                                                      Median :12.25  
-##                                                      Mean   :11.62  
-##                                                      3rd Qu.:14.50  
-##                                                      Max.   :16.50  
-##                                                      NA's   :57
+##  O:25     O: 15     O:  9    O:  3    NA's:118       1st Qu.:11.75  
+##                                                      Median :13.70  
+##                                                      Mean   :12.95  
+##                                                      3rd Qu.:15.07  
+##                                                      Max.   :20.00  
+##                                                      NA's   :20
 ```
 
 ```r
@@ -161,37 +159,46 @@ str(d)
 ```
 
 ```r
-
 d$NOTE <- as.numeric(d$NOTE)
 ```
+Etude du rang
+-------------
+
+```r
+rang_nb <- tapply(d$NOTE, d$RANG, length) #nb étudiants par rang
+barplot(rang_nb, ylab="nombre d'étudiants", xlab="Rang dans la classe", main = "Répartitions des étudiants en fonction du rang")
+```
+
+![plot of chunk rang](figure/rang.png) 
 
 
 Etude de la note
 ----------------
 
 ```r
-mean(d$NOTE, na.rm = TRUE)
+mean(d$NOTE, na.rm=TRUE)
 ```
 
 ```
-## [1] 11.62
-```
-
-```r
-sd(d$NOTE, na.rm = TRUE)
-```
-
-```
-## [1] 3.193
+## [1] 12.95
 ```
 
 ```r
-summary(d$NOTE)
+sd(d$NOTE, na.rm=TRUE)
+```
+
+```
+## [1] 3.255
+```
+
+```r
+n.etudiants <- sum(!is.na(d$NOTE))
+summary(d$NOTE) # nb de notes
 ```
 
 ```
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-##    4.42    9.25   12.20   11.60   14.50   16.50      57
+##    4.42   11.80   13.70   13.00   15.10   20.00      20
 ```
 
 ```r
@@ -204,114 +211,367 @@ tapply(d$NOTE, d$RANG, length)
 ```
 
 ```r
-tapply(d$NOTE, d$RANG, mean, na.rm = TRUE)
+tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
 ```
 
 ```
 ##     1     2     3     4     5     6     7     8     9 
-## 13.87 10.96 10.62 10.99 10.62 12.75 13.81 11.78 12.00
+## 14.08 13.09 12.03 12.54 13.26 14.53 14.12 11.78 12.00
 ```
 
 ```r
-hist(d$NOTE, ylab = "Fréquence", xlab = "Notes", main = "Histogramme des notes", 
-    col = "gray90")
+hist(d$NOTE, ylab="Fréquence", xlab="Notes", main="Histogramme des notes", col="gray90")
 ```
 
 ![plot of chunk note](figure/note1.png) 
 
 ```r
-boxplot(d$NOTE ~ d$RANG, ylab = "Note", xlab = "Rang de l'étudiant", main = "Répartition des notes en fonction du rang", 
-    col = "yellow")
+boxplot(d$NOTE ~ d$RANG, ylab="Note", xlab="Rang de l'étudiant", main="Répartition des notes en fonction du rang", col="yellow")
 ```
 
 ![plot of chunk note](figure/note2.png) 
+Note moyenne par rang
+---------------------
+
+```r
+mean_rang <- tapply(d$NOTE, d$RANG, mean, na.rm=TRUE)
+mean_rang
+```
+
+```
+##     1     2     3     4     5     6     7     8     9 
+## 14.08 13.09 12.03 12.54 13.26 14.53 14.12 11.78 12.00
+```
+
+```r
+barplot(mean_rang, main="Répartition des notes en fonction du rang", ylab="Note", xlab="Rang")
+```
+
+![plot of chunk notemoy_rang](figure/notemoy_rang1.png) 
+
+```r
+boxplot(NOTE ~ RANG, data=d, main="Répartition des notes en fonction du rang", ylab="Note", xlab="Rang")
+points( 1:9, mean_rang, col="red", pch=15)
+legend("bottomleft", legend=c("moyenne","médiane"), col=c("red","black"), pch=15, lty=1, bty="n")
+```
+
+![plot of chunk notemoy_rang](figure/notemoy_rang2.png) 
+
+```r
+f <- aov(d$NOTE ~ d$RANG)
+f
+```
+
+```
+## Call:
+##    aov(formula = d$NOTE ~ d$RANG)
+## 
+## Terms:
+##                 d$RANG Residuals
+## Sum of Squares     0.1    1027.4
+## Deg. of Freedom      1        96
+## 
+## Residual standard error: 3.271
+## Estimated effects may be unbalanced
+## 20 observations deleted due to missingness
+```
+
+```r
+summary(f)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## d$RANG       1      0    0.13    0.01   0.91
+## Residuals   96   1027   10.70               
+## 20 observations deleted due to missingness
+```
 
 en fonction du sexe
 -------------------
 
 ```r
-tapply(d$NOTE, d$SEXE, mean, na.rm = TRUE)
+summary(d$SEXE)
 ```
 
 ```
-##      F      M 
-## 11.813  7.877
+##  F  M 
+## 95 23
 ```
 
 ```r
-boxplot(d$NOTE ~ d$SEXE, ylab = "Note", main = "Répartition des notes en fonction du sexe", 
-    col = "pink")
+tapply(d$NOTE, d$SEXE, mean, na.rm=TRUE)
+```
+
+```
+##     F     M 
+## 12.66 14.11
+```
+
+```r
+boxplot(d$NOTE ~ d$SEXE, ylab="Note", main="Répartition des notes en fonction du sexe", col="pink")
 ```
 
 ![plot of chunk sexe](figure/sexe.png) 
 
-
-Résultats selon la filière
-==========================
-
-Il faut corriger ECOLE car un niveau est mal orthographié:
-
 ```r
-summary(ECOLE)
+note <- split(d$NOTE, d$SEXE)
+t.test(note$F, note$M)
 ```
 
 ```
-## Error: objet 'ECOLE' introuvable
-```
-
-```r
-ECOLE[as.character(ECOLE) == "ET IADE "] <- "ET IADE"
-```
-
-```
-## Error: objet 'ECOLE' introuvable
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  note$F and note$M
+## t = -1.69, df = 27.47, p-value = 0.1023
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -3.2073  0.3086
+## sample estimates:
+## mean of x mean of y 
+##     12.66     14.11
 ```
 
 ```r
-ECOLE <- factor(ECOLE)
+f <- aov(d$NOTE ~ d$RANG)
+f
 ```
 
 ```
-## Error: objet 'ECOLE' introuvable
-```
-
-```r
-summary(ECOLE)
-```
-
-```
-## Error: objet 'ECOLE' introuvable
-```
-
-```r
-barplot(ECOLE)
-```
-
-```
-## Error: objet 'ECOLE' introuvable
-```
-
-
-Motivation selon la filière
-----------------------------
-
-
-```r
-tapply(motivation, ECOLE, mean, na.rm = TRUE)
-```
-
-```
-## Error: objet 'ECOLE' introuvable
+## Call:
+##    aov(formula = d$NOTE ~ d$RANG)
+## 
+## Terms:
+##                 d$RANG Residuals
+## Sum of Squares     0.1    1027.4
+## Deg. of Freedom      1        96
+## 
+## Residual standard error: 3.271
+## Estimated effects may be unbalanced
+## 20 observations deleted due to missingness
 ```
 
 ```r
-boxplot(motivation ~ ECOLE)
+summary(f)
 ```
 
 ```
-## Error: objet 'motivation' introuvable
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## d$RANG       1      0    0.13    0.01   0.91
+## Residuals   96   1027   10.70               
+## 20 observations deleted due to missingness
 ```
 
+Corelation Note-Motivation
+--------------------------
+
+Récupération de la feuille de calcul sur _drive_ et sauvegarde dans le fichier __data_motivation.Rda__. Les données sont présentes en mémoire centrale sous le nom de __f__. On crée une colonne __motivation__ somme des questions 1 à 26. On dispose de 3 données:
+- le score de motivation (quantitatif)
+- la note (quantitatif)
+- le rang occuppé (qualitatif)
+
+```r
+require(RCurl)
+```
+
+```
+## Loading required package: RCurl
+## Loading required package: bitops
+```
+
+```r
+file <- "https://docs.google.com/spreadsheet/pub?key=0Aieb-IfcCNcXdExWbTlPSXNHRlFfRVpPcl80X2ZlNVE&output=csv"
+f <- read.table(textConnection(getURL(file)), header=T, sep=",")
+save(f, file="data_motivation.Rda")
+write.table(f, file="data_motivation.csv", sep=",")
+load("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
+```
+
+```
+## Error: argument inutilisé
+## ("~/Documents/CESU/UFFLER_2014/Uffler2014/data_motivation.Rda")
+```
+
+```r
+qs <- subset(f, select=c(QUEST.1:QUEST.26))
+f$motivation <- rowSums(qs)
+```
+
+On peut calculer un coef.de corrélation entre 2 variables quantitatives non nulles. On forme un dataframe avec les variables _motivation_ et _note_. Puis on élimine les lignes contenant des NA avant de calculer un coef de corrélation:
+
+```r
+c <- f[,c("NOTE", "motivation")]
+g <- c[complete.cases(c),]
+cor(g$NOTE, g$motivation)
+```
+
+```
+## [1] 0.09197
+```
+
+```r
+plot(g$NOTE, g$motivation, main="Note versus Motivation", xlab="NOTE", ylab="MOTIVATION", col="blue", pch=10)
+```
+
+![plot of chunk cor_motivation_note](figure/cor_motivation_note.png) 
+CCL: pas de corrélation entre NOTE et MOTIVATION.
+
+Essai de modélisation
+---------------------
 
 
+```r
+mod <- aov(f$NOTE ~ f$RANG)
+mod
+```
 
+```
+## Call:
+##    aov(formula = f$NOTE ~ f$RANG)
+## 
+## Terms:
+##                 f$RANG Residuals
+## Sum of Squares     0.1    1027.4
+## Deg. of Freedom      1        96
+## 
+## Residual standard error: 3.271
+## Estimated effects may be unbalanced
+## 20 observations deleted due to missingness
+```
+
+```r
+summary(mod)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## f$RANG       1      0    0.13    0.01   0.91
+## Residuals   96   1027   10.70               
+## 20 observations deleted due to missingness
+```
+
+```r
+mod <- aov(f$NOTE ~ f$RANG + f$motivation)
+mod
+```
+
+```
+## Call:
+##    aov(formula = f$NOTE ~ f$RANG + f$motivation)
+## 
+## Terms:
+##                 f$RANG f$motivation Residuals
+## Sum of Squares       0            9      1016
+## Deg. of Freedom      1            1        94
+## 
+## Residual standard error: 3.287
+## Estimated effects may be unbalanced
+## 21 observations deleted due to missingness
+```
+
+```r
+summary(mod)
+```
+
+```
+##              Df Sum Sq Mean Sq F value Pr(>F)
+## f$RANG        1      0    0.02    0.00   0.97
+## f$motivation  1      9    9.01    0.83   0.36
+## Residuals    94   1016   10.81               
+## 21 observations deleted due to missingness
+```
+
+```r
+mod <- aov(f$NOTE ~ f$RANG * f$motivation)
+summary(mod)
+```
+
+```
+##                     Df Sum Sq Mean Sq F value Pr(>F)
+## f$RANG               1      0    0.02    0.00   0.97
+## f$motivation         1      9    9.01    0.84   0.36
+## f$RANG:f$motivation  1     19   19.22    1.79   0.18
+## Residuals           93    997   10.72               
+## 21 observations deleted due to missingness
+```
+
+```r
+mod <- aov(motivation ~ RANG, data=f)
+summary(mod)
+```
+
+```
+##              Df Sum Sq Mean Sq F value Pr(>F)  
+## RANG          1   1455    1455    4.14  0.044 *
+## Residuals   115  40383     351                 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 1 observation deleted due to missingness
+```
+
+```r
+y <- cut(f$motivation, quantile(f$motivation, na.rm=T))
+mod <- aov(f$NOTE ~ f$RANG * y)
+summary(mod)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## f$RANG       1      0    0.03    0.00   0.96
+## y            3     29    9.77    0.90   0.45
+## f$RANG:y     3     33   11.04    1.01   0.39
+## Residuals   88    958   10.88               
+## 22 observations deleted due to missingness
+```
+
+```r
+mod <- aov(f$NOTE ~ y)
+summary(mod)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## y            3     28    9.21    0.85   0.47
+## Residuals   92    992   10.79               
+## 22 observations deleted due to missingness
+```
+
+```r
+mod <- aov(motivation ~ RANG, data=f)
+summary(mod)
+```
+
+```
+##              Df Sum Sq Mean Sq F value Pr(>F)  
+## RANG          1   1455    1455    4.14  0.044 *
+## Residuals   115  40383     351                 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 1 observation deleted due to missingness
+```
+
+```r
+mod <- aov(NOTE ~ RANG, data=f)
+summary(mod)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## RANG         1      0    0.13    0.01   0.91
+## Residuals   96   1027   10.70               
+## 20 observations deleted due to missingness
+```
+
+```r
+mod <- aov(NOTE ~ motivation, data=f)
+summary(mod)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(>F)
+## motivation   1      9    8.67    0.81   0.37
+## Residuals   95   1016   10.70               
+## 21 observations deleted due to missingness
+```
+Il y a une relation significative entre la motivation et le rang.
