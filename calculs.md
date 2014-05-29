@@ -233,7 +233,7 @@ tapply(NOTE, ECOLE, mean, na.rm=TRUE)
 
 ```
 AUX PUER  ETCADRE  ET IADE    MAIEU 
-  13.395      NaN   15.151    8.687 
+  13.395   12.812   15.151    8.687 
 ```
 
 ```r
@@ -249,12 +249,12 @@ summary(mod)
 ```
 
 ```
-            Df Sum Sq Mean Sq F value Pr(>F)    
-ECOLE        2    605   302.4      68 <2e-16 ***
-Residuals   95    423     4.4                   
+             Df Sum Sq Mean Sq F value Pr(>F)    
+ECOLE         3    605   201.7    48.3 <2e-16 ***
+Residuals   110    459     4.2                   
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-20 observations deleted due to missingness
+4 observations deleted due to missingness
 ```
 
 ```r
@@ -268,10 +268,13 @@ TukeyHSD(mod)
 Fit: aov(formula = NOTE ~ ECOLE)
 
 $ECOLE
-                   diff     lwr    upr  p adj
-ET IADE-AUX PUER  1.757  0.5967  2.916 0.0014
-MAIEU-AUX PUER   -4.708 -6.0349 -3.381 0.0000
-MAIEU-ET IADE    -6.465 -7.7983 -5.131 0.0000
+                    diff     lwr    upr  p adj
+ETCADRE-AUX PUER -0.5822 -2.1705  1.006 0.7744
+ET IADE-AUX PUER  1.7566  0.5258  2.987 0.0018
+MAIEU-AUX PUER   -4.7082 -6.1161 -3.300 0.0000
+ET IADE-ETCADRE   2.3389  0.7443  3.933 0.0012
+MAIEU-ETCADRE    -4.1260 -5.8609 -2.391 0.0000
+MAIEU-ET IADE    -6.4648 -7.8799 -5.050 0.0000
 ```
 
 ```r
@@ -287,7 +290,7 @@ Rang et note
 
 ```
     1     2     3     4     5     6     7     8     9 
-14.08 13.09 12.03 12.54 13.26 14.53 14.12 11.78 12.00 
+13.55 12.84 12.02 12.56 13.41 14.53 14.12 11.78 12.00 
 ```
 
 ![plot of chunk notemoy_rang](figure/notemoy_rang1.png) ![plot of chunk notemoy_rang](figure/notemoy_rang2.png) 
@@ -298,19 +301,19 @@ Call:
 
 Terms:
                 f$RANG Residuals
-Sum of Squares     0.1    1027.4
-Deg. of Freedom      1        96
+Sum of Squares     1.1    1063.1
+Deg. of Freedom      1       112
 
-Residual standard error: 3.271
+Residual standard error: 3.081
 Estimated effects may be unbalanced
-20 observations deleted due to missingness
+4 observations deleted due to missingness
 ```
 
 ```
-            Df Sum Sq Mean Sq F value Pr(>F)
-f$RANG       1      0    0.13    0.01   0.91
-Residuals   96   1027   10.70               
-20 observations deleted due to missingness
+             Df Sum Sq Mean Sq F value Pr(>F)
+f$RANG        1      1    1.12    0.12   0.73
+Residuals   112   1063    9.49               
+4 observations deleted due to missingness
 ```
 __Conclusions__: Pas de corréltion entre le rang et la note.
 
@@ -320,5 +323,5 @@ Motivation et note
 On peut calculer un coef.de corrélation entre 2 variables quantitatives non nulles. On forme un dataframe avec les variables _motivation_ et _note_. Puis on élimine les lignes contenant des NA avant de calculer un coef de corrélation:
 ![plot of chunk cor_motivation_note](figure/cor_motivation_note.png) 
 
-__CCL__: pas de corrélation entre NOTE et MOTIVATION (coef. de corrélation 0.092).
+__CCL__: pas de corrélation entre NOTE et MOTIVATION (coef. de corrélation 0.0991).
 
