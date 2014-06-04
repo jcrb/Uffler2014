@@ -1,0 +1,136 @@
+TABLEAU FINAL MASTER 2
+=======================
+
+Le fichier __TABLEAU FINAL MASTER 2__ contient les données cumulées des 2 années d'étude soit un peu plus de 500 participants:
+- les 400 premiers sont issus de la première étude
+- les 100 derniers de la dernière. Ils possèdent une colonne __note__ complétée.
+
+TODO: étude de la corrélation __motivation__ et __rang__, globalement et par catégorie socio-professionnels (CSP)
+
+- les noms de colonnes ne snt pas identiques: QUESTION et QUESTIO
+- caractères anormaux dans les colonnes 18,19,20,23
+
+CSP <- as.character(CSP)
+CSP[CSP=="ET IADE"] <- "EIADE"
+CSP[CSP=="ET IADE "] <- "EIADE"
+CSP[CSP=="ETCADRE "] <- "ECADRE"
+CSP<-as.factor(CSP)
+
+
+
+```{r init, echo=FALSE}
+file <- "/home/jcb/Documents/CESU/UFFLER_2014/Uffler2014/Dossier_final_2014/TABLEAU FINAL MASTER 2.csv"
+d <- read.table(file, header=TRUE, sep=";")
+
+```
+- on forme une colonne **motivation** qui est la somme des 26 questions posées:
+
+```{r tidy, echo=FALSE}
+qs <- subset(d, select=c(QUESTION1:QUESTION26))
+d$motivation <- rowSums(qs)
+attach(d)
+n <- nrow(d)
+summary(motivation)
+# hist(motivation, ylab="effectifs", xlab="Score de motivation")
+
+d$CSP <- as.character(d$CSP)
+d$CSP[d$CSP=="ET IADE"] <- "EIADE"
+d$CSP[d$CSP=="ET IADE "] <- "EIADE"
+d$CSP[d$CSP=="ETCADRE "] <- "ECADRE"
+d$CSP<-as.factor(d$CSP)
+summary(d$CSP)
+
+RANG <- as.factor(RANG)
+summary(RANG)
+```
+
+La moyenne et la médiane sont proches ce qui permet de considérer (avec l'aspet de l'histogramme) que les données sont sensiblement normales.
+
+```{r hist, echo=FALSE}
+# histogramme du score de motivation
+hist(motivation, xlab="Score de motivation", ylab="Fréquence", main=paste0("Histogramme du score de motivation (n = ",n,")"), col="cornflowerblue", border="white")
+```
+
+
+Il y a __`r n` observations__.
+
+On a 3 variables:
+  - **motivation** est une variable quantitative
+  - **RANG** est une variable qualitative
+  - **CSP** est une variable qualitative
+  
+  Hypothèse: motivation ~ RANG + CSP ?
+  
+Motivation et CSP
+-----------------
+
+```{r csp, echo=FALSE}
+means <- tapply(motivation, CSP, mean, na.rm=TRUE)
+means
+boxplot(motivation ~ CSP, xlab="CSP", ylab="Score de motivation", main="Motivation selon la CSP", col="antiquewhite")
+points(1:length(means), means, pch = 23, cex = 0.75, bg = "red")
+text(1:length(means) , means + 10, labels = formatC(means, format = "f", digits = 1),pos = 1, cex = 0.9, col = "blue")
+
+mod <- aov(motivation ~ CSP, data=d)
+summary(mod)
+TukeyHSD(mod)
+par(mar=c(5,9,3,2))
+plot(TukeyHSD(mod), las=2)
+
+```
+
+La motivation parait inversement proprtionnelle à la catégorie socio-professionnelle (CSP), les aides-soignantes sont les plus motivées. La différence entre les motivations moyennes sont significativement différentes (p=0.00038). Dans le détail, la comparaison deux à deux des moyennes par le test HSD de Tukey montre que:
+- les AUX PUER se distinguent de tous les autres groupes (p < 0.05) sauf les cadres (effectif faible)
+- la différence n'est pas significative entre les autres groupes.
+
+Rang et motivation
+------------------
+
+En supposant que la disposition des salles soit identique, le rang le plus utilisé est le troisième et d'une façon générale ce sont les rangs médians qui sont le plus utilisés.
+```{r, echo=FALSE}
+summary(RANG)
+```
+Si ont s'intérsse au CSP il n'y a pas de différence de comprtements, sauf peut être pour les cadres.
+(première ligne = rang, deuxième = efectif)
+```{r, echo=FALSE}
+tapply(RANG, CSP, summary)
+
+```
+
+L'interaction motivation x rang est sigificative: le choix du rang dépend de la motivation, la motivation la plus forte s'observant au premier rang.
+
+```{r rang, echo=FALSE}
+means <- tapply(motivation, RANG, mean, na.rm=TRUE)
+means
+boxplot(motivation ~ RANG, xlab="RANG", ylab="Score de motivation", main="Motivation selon le Rang", col="antiquewhite")
+points(1:length(means), means, pch = 23, cex = 0.75, bg = "red")
+text(1:length(means) , means + 10, labels = formatC(means, format = "f", digits = 1),pos = 1, cex = 0.9, col = "blue")
+
+mod <- aov(motivation ~ RANG, data=d)
+summary(mod)
+TukeyHSD(mod)
+
+```
+
+Motivation versus RANG et CSP
+----------------------------
+On s'intéresse à la relation entre la motivation et les rang ET la CSP. En analyse individuelle on amontré qu'il y avait une relation entre la motivation et le rang et la CSP. Qu'est-ce qui se passe si on étudie cette relation quand on teste l'effet simultanné de ces 2 facteurs? On fabrique 2 modèles. Dans le premier on teste la motivation versus le rang et la CSP selon un modèle additif simple: la motivation peut s'explique par la somme du choix du rang et la CSP. Dans le second modèle on ajoute,le poids de l'interaction rang x CSP (le choix du rang dépend t il de la CSP ?). 
+Dand le modèle 1, il y a une relation significative entre la motivation et le rang à CSP égale, mais également entre motivation et CSP à  rang égal.   
+Dans le modèle 2 on motre qu'il y a une relation significative entre le rang et la CSP (selon son métier on ne choisit pas n'importe quel rang), mais que débarassé de cet "influence", le rang et la motivation conservent un effet propre significatif sur la motivation.
+
+Limites de l'interprétation
+- les groupes par CSP sont faibles et disproportionnés (EI écrase les autres)
+
+RQ: sortie très longue car le programme teste toites les combinaisons possibles de CSP et de Rang...
+
+```{r modele, echo=FALSE}
+mod1 <- aov(motivation ~ CSP + RANG)
+summary(mod1)
+TukeyHSD(mod1)
+
+mod2 <- aov(motivation ~ CSP * RANG)
+summary(mod2)
+mod2
+TukeyHSD(mod2)
+```
+
