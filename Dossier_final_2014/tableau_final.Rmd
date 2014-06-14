@@ -16,12 +16,21 @@ CSP[CSP=="ET IADE "] <- "EIADE"
 CSP[CSP=="ETCADRE "] <- "ECADRE"
 CSP<-as.factor(CSP)
 
+Session Info
+------------
+```{r info}
+sessionInfo()
 
+citation()
+```
+
+Analyse du fichier Master2
+--------------------------
 
 ```{r init, echo=FALSE}
 file <- "/home/jcb/Documents/CESU/UFFLER_2014/Uffler2014/Dossier_final_2014/TABLEAU FINAL MASTER 2.csv"
 d <- read.table(file, header=TRUE, sep=";")
-
+save(d, file="master2.Rda")
 ```
 - on forme une colonne **motivation** qui est la somme des 26 questions posées:
 
@@ -41,8 +50,12 @@ d$CSP<-as.factor(d$CSP)
 summary(d$CSP)
 
 RANG <- as.factor(RANG)
-summary(RANG)
+nb_par_rang <- rbind(c(1:9), table(RANG))
+rownames(nb_par_rang) <- c("Rang","Etudiants")
+print("Nombre d'étudiants par rang:")
+nb_par_rang
 ```
+
 
 La moyenne et la médiane sont proches ce qui permet de considérer (avec l'aspet de l'histogramme) que les données sont sensiblement normales.
 
@@ -102,6 +115,17 @@ L'interaction motivation x rang est sigificative: le choix du rang dépend de la
 ```{r rang, echo=FALSE}
 means <- tapply(motivation, RANG, mean, na.rm=TRUE)
 means
+rang_sd <- tapply(motivation, RANG, sd, na.rm=TRUE)
+rang_sd
+rang_nb <- tapply(RANG, RANG, length)
+rang_median <- tapply(motivation, RANG, median, na.rm=TRUE)
+
+a <- rbind(means, rang_sd, rang_median, rang_nb)
+rownames(a) <- c("moyenne", "Ecart-T", "Médiane","effectif")
+a <- as.data.frame(a)
+names(a) <- c(paste("Rang", 1:9))
+a
+
 boxplot(motivation ~ RANG, xlab="RANG", ylab="Score de motivation", main="Motivation selon le Rang", col="antiquewhite")
 points(1:length(means), means, pch = 23, cex = 0.75, bg = "red")
 text(1:length(means) , means + 10, labels = formatC(means, format = "f", digits = 1),pos = 1, cex = 0.9, col = "blue")
@@ -110,7 +134,24 @@ mod <- aov(motivation ~ RANG, data=d)
 summary(mod)
 TukeyHSD(mod)
 
+print("Etude de la corrélation")
+
+plot(means, xlab="Rang de l'étudiant", ylab="Score moyen de motivation", main="Corrélation entre le rang et la motivation (n = 594)\nIntervalle de confiance à 95%")
+rang <- 1:9
+reg <- lm(means ~ rang)
+summary(reg)
+abline(reg)
+y = predict(reg, as.data.frame(rang), interval='pred', level=0.95)
+lines(y[,2], lty=2)
+lines(y[,3], lty=2)
+p <- round(as.numeric(summary(aov(reg))[[1]][5][[1]][1]),5)
+R2 <- round(summary(reg)[[8]], 2)
+R2Ajuste <- round(summary(reg)[[9]], 2)
+text(7,135, paste("r2 = ", R2Ajuste))
+text(7,134, paste("p = ", p))
 ```
+R2 est le coefficient de détermination: Plus cette valeur sera proche de 1 meilleur sera l’ajustement.
+S’interprete comme la proportion de variabilité du score moyen de motivation expliqué par le rang. 
 
 Motivation versus RANG et CSP
 ----------------------------

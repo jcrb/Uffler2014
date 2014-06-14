@@ -16,7 +16,65 @@ CSP[CSP=="ET IADE "] <- "EIADE"
 CSP[CSP=="ETCADRE "] <- "ECADRE"
 CSP<-as.factor(CSP)
 
+Session Info
+------------
 
+```r
+sessionInfo()
+```
+
+```
+## R version 3.1.0 (2014-04-10)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## 
+## locale:
+##  [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=fr_FR.UTF-8        LC_COLLATE=fr_FR.UTF-8    
+##  [5] LC_MONETARY=fr_FR.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
+##  [7] LC_PAPER=fr_FR.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=fr_FR.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] knitr_1.6
+## 
+## loaded via a namespace (and not attached):
+## [1] evaluate_0.5.5 formatR_0.10   stringr_0.6.2  tools_3.1.0
+```
+
+```r
+citation()
+```
+
+```
+## 
+## To cite R in publications use:
+## 
+##   R Core Team (2014). R: A language and environment for
+##   statistical computing. R Foundation for Statistical Computing,
+##   Vienna, Austria. URL http://www.R-project.org/.
+## 
+## A BibTeX entry for LaTeX users is
+## 
+##   @Manual{,
+##     title = {R: A Language and Environment for Statistical Computing},
+##     author = {{R Core Team}},
+##     organization = {R Foundation for Statistical Computing},
+##     address = {Vienna, Austria},
+##     year = {2014},
+##     url = {http://www.R-project.org/},
+##   }
+## 
+## We have invested a lot of time and effort in creating R, please
+## cite it when using it for data analysis. See also
+## 'citation("pkgname")' for citing R packages.
+```
+
+Analyse du fichier Master2
+--------------------------
 
 
 - on forme une colonne **motivation** qui est la somme des 26 questions posées:
@@ -33,9 +91,15 @@ CSP<-as.factor(CSP)
 ```
 
 ```
-##    1    2    3    4    5    6    7    8    9 NA's 
-##   60   89   99   87   94   74   52   32    5    1
+## [1] "Nombre d'étudiants par rang:"
 ```
+
+```
+##            1  2  3  4  5  6  7  8 9
+## Rang       1  2  3  4  5  6  7  8 9
+## Etudiants 60 89 99 87 94 74 52 32 5
+```
+
 
 La moyenne et la médiane sont proches ce qui permet de considérer (avec l'aspet de l'histogramme) que les données sont sensiblement normales.
 
@@ -143,7 +207,20 @@ L'interaction motivation x rang est sigificative: le choix du rang dépend de la
 ## 137.5 132.8 129.7 128.9 132.2 129.5 125.8 121.5 121.4
 ```
 
-![plot of chunk rang](figure/rang.png) 
+```
+##     1     2     3     4     5     6     7     8     9 
+## 19.04 20.78 17.27 18.16 16.88 14.84 22.54 27.74 19.93
+```
+
+```
+##          Rang 1 Rang 2 Rang 3 Rang 4 Rang 5 Rang 6 Rang 7 Rang 8 Rang 9
+## moyenne  137.47 132.75 129.72 128.90 132.24 129.54 125.76 121.47 121.40
+## Ecart-T   19.04  20.78  17.27  18.16  16.88  14.84  22.54  27.74  19.93
+## Médiane  141.00 134.00 130.00 129.00 133.50 131.50 128.00 119.00 128.00
+## effectif  60.00  89.00  99.00  87.00  94.00  74.00  52.00  32.00   5.00
+```
+
+![plot of chunk rang](figure/rang1.png) 
 
 ```
 ##              Df Sum Sq Mean Sq F value  Pr(>F)    
@@ -162,6 +239,35 @@ L'interaction motivation x rang est sigificative: le choix du rang dépend de la
 ## Error: no factors in the fitted model
 ```
 
+```
+## [1] "Etude de la corrélation"
+```
+
+```
+## 
+## Call:
+## lm(formula = means ~ rang)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+##  -2.60  -1.67  -0.38   1.64   3.44 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  137.587      1.662   82.78  9.9e-12 ***
+## rang          -1.756      0.295   -5.95  0.00057 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.29 on 7 degrees of freedom
+## Multiple R-squared:  0.835,	Adjusted R-squared:  0.811 
+## F-statistic: 35.4 on 1 and 7 DF,  p-value: 0.000572
+```
+
+![plot of chunk rang](figure/rang2.png) 
+R2 est le coefficient de détermination: Plus cette valeur sera proche de 1 meilleur sera l’ajustement.
+S’interprete comme la proportion de variabilité du score moyen de motivation expliqué par le rang. 
+
 Motivation versus RANG et CSP
 ----------------------------
 On s'intéresse à la relation entre la motivation et les rang ET la CSP. En analyse individuelle on amontré qu'il y avait une relation entre la motivation et le rang et la CSP. Qu'est-ce qui se passe si on étudie cette relation quand on teste l'effet simultanné de ces 2 facteurs? On fabrique 2 modèles. Dans le premier on teste la motivation versus le rang et la CSP selon un modèle additif simple: la motivation peut s'explique par la somme du choix du rang et la CSP. Dans le second modèle on ajoute,le poids de l'interaction rang x CSP (le choix du rang dépend t il de la CSP ?). 
@@ -171,6 +277,7 @@ Dans le modèle 2 on motre qu'il y a une relation significative entre le rang et
 Limites de l'interprétation
 - les groupes par CSP sont faibles et disproportionnés (EI écrase les autres)
 
+RQ: sortie très longue car le programme teste toites les combinaisons possibles de CSP et de Rang...
 
 
 ```
