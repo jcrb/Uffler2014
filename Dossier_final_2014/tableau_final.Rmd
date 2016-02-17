@@ -150,7 +150,7 @@ print("Etude de la corrélation")
 plot(means, xlab="Rang de l'étudiant", ylab="Score moyen de motivation", main="Corrélation entre le rang et la motivation (n = 594)\nIntervalle de confiance à 95%")
 rang <- 1:9
 
-# Corrélation Rang - Motivation
+# Corrélation Rang - Motivation (Pearson)
 # means est le vecteur des moyennes pour chaque rang
 R <- cor(means, rang)
 R
@@ -177,6 +177,15 @@ Le __coefficient de corrélation R__ est égal à `r round(R, 2)`, traduisant un
 
 __R2 est le coefficient de détermination__: Plus cette valeur sera proche de 1 meilleur sera l’ajustement.
 Im s’interprete comme la proportion de variabilité du score moyen de motivation expliqué par le rang. Dans cet échatillon, 81% du score s'explique par le rang. 19% du score moyen de la motivation est lié à d'autres facteurs.
+
+Même calcul avec les coefficient de corrélation de Spearman (ref: https://perso.univ-rennes1.fr/denis.poinsot/Statistiques_%20pour_statophobes/R%20pour%20les%20statophobes.pdf)
+
+```{r, echo=FALSE, comment=""}
+cor(means, rang, method = "spearman")
+
+cor.test(means, rang, method = "spearman")
+```
+
 
 Motivation versus RANG et CSP
 ----------------------------

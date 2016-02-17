@@ -298,6 +298,26 @@ Le __coefficient de corrélation R__ est égal à -0.91, traduisant une corréla
 __R2 est le coefficient de détermination__: Plus cette valeur sera proche de 1 meilleur sera l’ajustement.
 Im s’interprete comme la proportion de variabilité du score moyen de motivation expliqué par le rang. Dans cet échatillon, 81% du score s'explique par le rang. 19% du score moyen de la motivation est lié à d'autres facteurs.
 
+Même calcul avec les coefficient de corrélation de Spearman (ref: https://perso.univ-rennes1.fr/denis.poinsot/Statistiques_%20pour_statophobes/R%20pour%20les%20statophobes.pdf)
+
+
+```
+[1] -0.9166667
+```
+
+```
+
+	Spearman's rank correlation rho
+
+data:  means and rang
+S = 230, p-value = 0.001312
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+       rho 
+-0.9166667 
+```
+
+
 Motivation versus RANG et CSP
 ----------------------------
 On s'intéresse à la relation entre la motivation et les rang ET la CSP. En analyse individuelle on amontré qu'il y avait une relation entre la motivation et le rang et la CSP. Qu'est-ce qui se passe si on étudie cette relation quand on teste l'effet simultanné de ces 2 facteurs? On fabrique 2 modèles. Dans le premier on teste la motivation versus le rang et la CSP selon un modèle additif simple: la motivation peut s'explique par la somme du choix du rang et la CSP. Dans le second modèle on ajoute,le poids de l'interaction rang x CSP (le choix du rang dépend t il de la CSP ?). 
